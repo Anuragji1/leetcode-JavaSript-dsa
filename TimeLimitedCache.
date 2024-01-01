@@ -1,0 +1,49 @@
+class TimeLimitedCache {
+  constructor() {
+    this.cache = new Map();
+  }
+
+  set(key, value, duration) {
+    const expirationTime = Date.now() + duration;
+    const existingEntry = this.cache.get(key);
+
+    if (existingEntry && existingEntry.expirationTime >= Date.now()) {
+      existingEntry.value = value;
+      existingEntry.expirationTime = expirationTime;
+      return true; // Key already existed
+    } else {
+      this.cache.set(key, { value, expirationTime });
+      return false; // Key didn't exist
+    }
+  }
+
+  get(key) {
+    const entry = this.cache.get(key);
+    if (entry && entry.expirationTime >= Date.now()) {
+      return entry.value;
+    } else {
+      return -1; // Key not found or expired
+    }
+  }
+
+  count() {
+    let count = 0;
+    for (const [key, entry] of this.cache.entries()) {
+      if (entry.expirationTime >= Date.now()) {
+        count++;
+      }
+    }
+    return count;
+  }
+}
+
+// Example usage:
+const cache = new TimeLimitedCache();
+cache.set(1, 42, 100); // Set key 1 with value 42 and duration of 100ms
+console.log(cache.get(1)); // Output: 42
+console.log(cache.count()); // Output: 1
+
+setTimeout(() => {
+  console.log(cache.get(1)); // Output: -1 (key has expired)
+  console.log(cache.count()); // Output: 0
+}, 150);
